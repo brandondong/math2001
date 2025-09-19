@@ -10,7 +10,8 @@ example : 11 ≡ 3 [ZMOD 4] := by
   numbers
 
 example : -5 ≡ 1 [ZMOD 3] := by
-  sorry
+  use -2
+  ring
 
 theorem Int.ModEq.add {n a b c d : ℤ} (h1 : a ≡ b [ZMOD n]) (h2 : c ≡ d [ZMOD n]) :
     a + c ≡ b + d [ZMOD n] := by
@@ -26,10 +27,24 @@ theorem Int.ModEq.add {n a b c d : ℤ} (h1 : a ≡ b [ZMOD n]) (h2 : c ≡ d [Z
 
 theorem Int.ModEq.sub {n a b c d : ℤ} (h1 : a ≡ b [ZMOD n]) (h2 : c ≡ d [ZMOD n]) :
     a - c ≡ b - d [ZMOD n] := by
-  sorry
+  dsimp [Int.ModEq] at *
+  cases' h1 with x hx
+  cases' h2 with y hy
+  use x-y
+  calc
+    a - c - (b - d) = a - b - (c - d) := by ring
+    _ = n * x - n * y := by rw [hx, hy]
+    _ = n * (x - y) := by ring
+
 
 theorem Int.ModEq.neg {n a b : ℤ} (h1 : a ≡ b [ZMOD n]) : -a ≡ -b [ZMOD n] := by
-  sorry
+  cases' h1 with x hx
+  use -x
+  calc
+    -a - -b = -(a - b) := by ring
+    _ = -(n * x) := by rw [hx]
+    _ = n * -x := by ring
+
 
 theorem Int.ModEq.mul {n a b c d : ℤ} (h1 : a ≡ b [ZMOD n]) (h2 : c ≡ d [ZMOD n]) :
     a * c ≡ b * d [ZMOD n] := by
@@ -52,7 +67,14 @@ theorem Int.ModEq.pow_two (h : a ≡ b [ZMOD n]) : a ^ 2 ≡ b ^ 2 [ZMOD n] := b
 
 
 theorem Int.ModEq.pow_three (h : a ≡ b [ZMOD n]) : a ^ 3 ≡ b ^ 3 [ZMOD n] := by
-  sorry
+  dsimp [Int.ModEq] at *
+  cases' h with x hx
+  use x * (a ^ 2 + a * b + b ^ 2)
+  calc
+    a ^ 3 - b ^ 3 = (a - b) * (a^2 + a*b + b^2) := by ring
+    _ = (n * x) * (a^2 + a*b + b^2) := by rw [hx]
+    _ = _ := by ring
+
 
 theorem Int.ModEq.pow (k : ℕ) (h : a ≡ b [ZMOD n]) : a ^ k ≡ b ^ k [ZMOD n] :=
   sorry -- we'll prove this later in the book
@@ -94,25 +116,58 @@ example {a b : ℤ} (ha : a ≡ 2 [ZMOD 4]) :
 
 
 example : 34 ≡ 104 [ZMOD 5] := by
-  sorry
+  use -14
+  ring
+
 
 theorem Int.ModEq.symm (h : a ≡ b [ZMOD n]) : b ≡ a [ZMOD n] := by
-  sorry
+  cases' h with x hx
+  use -x
+  calc
+    b - a = -(a - b) := by ring
+    _ = -(n * x) := by rw [hx]
+    _ = _ := by ring
+
 
 theorem Int.ModEq.trans (h1 : a ≡ b [ZMOD n]) (h2 : b ≡ c [ZMOD n]) :
     a ≡ c [ZMOD n] := by
-  sorry
+  cases' h1 with x hx
+  cases' h2 with y hy
+  use x+y
+  calc
+    a - c = a - b + (b - c) := by ring
+    _ = n * x + n * y := by rw [hx, hy]
+    _ = _ := by ring
+
 
 example : a + n * c ≡ a [ZMOD n] := by
-  sorry
+  use c
+  ring
 
 
 example {a b : ℤ} (h : a ≡ b [ZMOD 5]) : 2 * a + 3 ≡ 2 * b + 3 [ZMOD 5] := by
-  sorry
+  apply Int.ModEq.add
+  apply Int.ModEq.mul
+  apply Int.ModEq.refl
+  apply h
+  apply Int.ModEq.refl
+
 
 example {m n : ℤ} (h : m ≡ n [ZMOD 4]) : 3 * m - 1 ≡ 3 * n - 1 [ZMOD 4] := by
-  sorry
+  apply Int.ModEq.add
+  apply Int.ModEq.mul
+  apply Int.ModEq.refl
+  exact h
+  apply Int.ModEq.refl
+
 
 example {k : ℤ} (hb : k ≡ 3 [ZMOD 5]) :
     4 * k + k ^ 3 + 3 ≡ 4 * 3 + 3 ^ 3 + 3 [ZMOD 5] := by
-  sorry
+  apply Int.ModEq.add
+  apply Int.ModEq.add
+  apply Int.ModEq.mul
+  apply Int.ModEq.refl
+  assumption
+  apply Int.ModEq.pow
+  assumption
+  apply Int.ModEq.refl
