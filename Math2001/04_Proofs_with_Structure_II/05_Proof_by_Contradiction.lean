@@ -23,7 +23,12 @@ example : ¬ 3 ∣ 13 := by
     calc 13 = 3 * k := hk
       _ ≤ 3 * 4 := by rel [h4]
     numbers at h
-  · sorry
+  · have h :=
+    calc 13 = 3 * k := hk
+      _ ≥ 3 * 5 := by rel [h5]
+      _ = 15 := by ring
+    numbers at h
+
 
 example {x y : ℝ} (h : x + y = 0) : ¬(x > 0 ∧ y > 0) := by
   intro h
@@ -35,7 +40,21 @@ example {x y : ℝ} (h : x + y = 0) : ¬(x > 0 ∧ y > 0) := by
 
 
 example : ¬ (∃ n : ℕ, n ^ 2 = 2) := by
-  sorry
+  intro h
+  cases' h with n hn
+  have h2 := le_or_succ_le n 1
+  cases' h2 with h2 h2
+  . have h3 := calc
+      1 = 1 ^ 2 := by ring
+      _ ≥ n ^ 2 := by rel [h2]
+      _ = 2 := by rw [hn]
+    numbers at h3
+  . have h3 := calc
+      4 = 2 ^ 2 := by ring
+      _ ≤ n ^ 2 := by rel [h2]
+      _ = 2 := by rw [hn]
+    numbers at h3
+
 
 example (n : ℤ) : Int.Even n ↔ ¬ Int.Odd n := by
   constructor
@@ -53,7 +72,19 @@ example (n : ℤ) : Int.Even n ↔ ¬ Int.Odd n := by
 
 
 example (n : ℤ) : Int.Odd n ↔ ¬ Int.Even n := by
-  sorry
+  constructor
+  . intro h h4
+    rw [Int.even_iff_modEq] at h4
+    rw [Int.odd_iff_modEq] at h
+    have h3 :=
+    calc 0 ≡ n [ZMOD 2] := by rel [h4]
+      _ ≡ 1 [ZMOD 2] := by rel [h]
+    numbers at h3
+  . intro h
+    obtain h1 | h2 := Int.even_or_odd n
+    contradiction
+    assumption
+
 
 example (n : ℤ) : ¬(n ^ 2 ≡ 2 [ZMOD 3]) := by
   intro h
@@ -63,8 +94,18 @@ example (n : ℤ) : ¬(n ^ 2 ≡ 2 [ZMOD 3]) := by
       _ ≡ n ^ 2 [ZMOD 3] := by rel [hn]
       _ ≡ 2 [ZMOD 3] := by rel [h]
     numbers at h -- contradiction!
-  · sorry
-  · sorry
+  · have h :=
+    calc (1:ℤ) = 1 ^ 2 := by numbers
+      _ ≡ n ^ 2 [ZMOD 3] := by rel [hn]
+      _ ≡ 2 [ZMOD 3] := by rel [h]
+    numbers at h -- contradiction!
+  · have h :=
+    calc (1:ℤ) ≡ 1 + 3 * 1 [ZMOD 3] := by extra
+      _ = 2 ^ 2 := by numbers
+      _ ≡ n ^ 2 [ZMOD 3] := by rel [hn]
+      _ ≡ 2 [ZMOD 3] := by rel [h]
+    numbers at h -- contradiction!
+
 
 example {p : ℕ} (k l : ℕ) (hk1 : k ≠ 1) (hkp : k ≠ p) (hkl : p = k * l) :
     ¬(Prime p) := by
@@ -91,7 +132,17 @@ example (a b : ℤ) (h : ∃ q, b * q < a ∧ a < b * (q + 1)) : ¬b ∣ a := by
   calc b * k = a := by rw [hk]
     _ < b * (q + 1) := hq₂
   cancel b at h1
-  sorry
+  have h2 := calc
+    b*q < a := hq₁
+    _ = b*k := hk
+  cancel b at h2
+  have h3 : q + 1 ≤ k := by addarith [h2]
+  have contra := calc
+    q + 1 ≤ k := h3
+    _ < q + 1 := h1
+  have contra2 : 1 < 1 := by addarith [contra]
+  numbers at contra2
+
 
 example {p : ℕ} (hp : 2 ≤ p)  (T : ℕ) (hTp : p < T ^ 2)
     (H : ∀ (m : ℕ), 1 < m → m < T → ¬ (m ∣ p)) :
@@ -103,14 +154,23 @@ example {p : ℕ} (hp : 2 ≤ p)  (T : ℕ) (hTp : p < T ^ 2)
   intro h_div
   obtain ⟨l, hl⟩ := h_div
   have : l ∣ p
-  · sorry
+  · use m
+    calc
+      p = m * l := hl
+      _ = l * m := by ring
   have hl1 :=
     calc m * 1 = m := by ring
       _ < p := hmp
       _ = m * l := hl
   cancel m at hl1
   have hl2 : l < T
-  · sorry
+  · have hl3 : T * l < T * T
+    . calc
+        T * l ≤ m * l := by rel [hmT]
+        _ = p := by rw [hl]
+        _ < T ^ 2 := hTp
+        _ = T * T := by ring
+    cancel T at hl3
   have : ¬ l ∣ p := H l hl1 hl2
   contradiction
 
@@ -128,37 +188,178 @@ example : Prime 79 := by
     constructor <;> numbers
   · use 19
     constructor <;> numbers
-  · sorry
-  · sorry
-  · sorry
-  · sorry
+  · use 15
+    constructor <;> numbers
+  · use 13
+    constructor <;> numbers
+  · use 11
+    constructor <;> numbers
+  · use 9
+    constructor <;> numbers
+
 
 /-! # Exercises -/
 
 
 example : ¬ (∃ t : ℝ, t ≤ 4 ∧ t ≥ 5) := by
-  sorry
+  intro h
+  cases' h with t ht
+  cases' ht with ht1 ht2
+  have contra := calc
+    4 ≥ t := by rel [ht1]
+    _ ≥ 5 := by rel [ht2]
+  numbers at contra
+
 
 example : ¬ (∃ a : ℝ, a ^ 2 ≤ 8 ∧ a ^ 3 ≥ 30) := by
-  sorry
+  intro h
+  cases' h with a ha
+  cases' ha with ha1 ha2
+  have ha3 := calc
+    a ^ 2 ≤ 8 := ha1
+    _ < 3 ^ 2 := by numbers
+  cancel 2 at ha3
+  have la := lt_or_ge a 0
+  cases' la with la la
+  . have contra : a ^ 3 < 0
+    . clear ha3
+      clear ha2
+      clear ha1
+      have h : a ^ 2 > 0
+      . exact sq_pos_of_neg la
+      have h2 : (a ^ 2) * a < 0 := by exact Linarith.mul_neg la h
+      calc
+        a ^ 3 = (a ^ 2) * a := by ring
+        _ < 0 := h2
+    have contra2 := calc
+      a ^ 3 < 0 := contra
+      _ < 30 := by numbers
+    have ha4 : ¬a ^ 3 ≥ 30 := by exact not_le.mpr contra2
+    contradiction
+  have contra := calc
+    a ^ 3 = a * a * a := by ring
+    _ < 3 * 3 * 3 := by rel [ha3]
+    _ < 30 := by numbers
+  have ha4 : ¬a ^ 3 ≥ 30 := by exact not_le.mpr contra
+  contradiction
+
 
 example : ¬ Int.Even 7 := by
-  sorry
+  intro h
+  cases' h with x hx
+  have h2 := le_or_succ_le x 3
+  cases' h2 with h2 h2
+  . have h3 := calc
+      7 = 2 * x := hx
+      _ ≤ 2 * 3 := by rel [h2]
+    numbers at h3
+  . have h3 := calc
+      7 = 2 * x := hx
+      _ ≥ 2 * 4 := by rel [h2]
+    numbers at h3
+
 
 example {n : ℤ} (hn : n + 3 = 7) : ¬ (Int.Even n ∧ n ^ 2 = 10) := by
-  sorry
+  intro h
+  cases' h with h1 h2
+  have hn2 : n = 4 := by addarith [hn]
+  rw [hn2] at h2
+  numbers at h2
+
 
 example {x : ℝ} (hx : x ^ 2 < 9) : ¬ (x ≤ -3 ∨ x ≥ 3) := by
-  sorry
+  intro h
+  have hx2 : x ^ 2 < 3 ^ 2 := by addarith [hx]
+  have dummy : (0: ℝ) ≤ 3 := by numbers
+  have hx3 := abs_lt_of_sq_lt_sq' hx2 dummy
+  clear dummy
+  cases' hx3 with hx3 hx4
+  cases' h with hx5 hx5
+  . have contra : ¬ -3 < x
+    exact not_lt.mpr hx5
+    contradiction
+  . have contra: ¬ x < 3
+    exact not_lt.mpr hx5
+    contradiction
+
 
 example : ¬ (∃ N : ℕ, ∀ k > N, Nat.Even k) := by
-  sorry
+  intro h
+  cases' h with N hN
+  have h1 : Nat.Even (N+1)
+  apply hN
+  extra
+  have h2 : Nat.Even (N+2)
+  apply hN
+  extra
+  clear hN
+  rw [Nat.even_iff_not_odd] at h2
+  apply h2
+  clear h2
+  cases' h1 with x hx
+  use x
+  calc
+    N + 2 = N + 1 + 1 := by ring
+    _ = 2 * x + 1 := by rw [hx]
+
 
 example (n : ℤ) : ¬(n ^ 2 ≡ 2 [ZMOD 4]) := by
-  sorry
+  intro h
+  mod_cases hn : n % 4
+  . have contra := calc
+      2 ≡ n ^ 2 [ZMOD 4] := by rel [h]
+      _ = n * n := by ring
+      _ ≡ 0 * 0 [ZMOD 4] := by rel [hn]
+      _ = 0 := by ring
+    numbers at contra
+  . have contra := calc
+      2 ≡ n ^ 2 [ZMOD 4] := by rel [h]
+      _ = n * n := by ring
+      _ ≡ 1 * 1 [ZMOD 4] := by rel [hn]
+      _ = 1 := by ring
+    numbers at contra
+  . have contra := calc
+      2 ≡ n ^ 2 [ZMOD 4] := by rel [h]
+      _ = n * n := by ring
+      _ ≡ 2 * 2 [ZMOD 4] := by rel [hn]
+      _ = 0 + 4 * 1 := by ring
+      _ ≡ 0 [ZMOD 4] := by extra
+    numbers at contra
+  . have contra := calc
+      2 ≡ n ^ 2 [ZMOD 4] := by rel [h]
+      _ = n * n := by ring
+      _ ≡ 3 * 3 [ZMOD 4] := by rel [hn]
+      _ = 1 + 4 * 2 := by ring
+      _ ≡ 1 [ZMOD 4] := by extra
+    numbers at contra
+
 
 example : ¬ Prime 1 := by
-  sorry
+  intro h
+  cases' h with h1 h2
+  numbers at h1
+
 
 example : Prime 97 := by
-  sorry
+  apply better_prime_test (T := 10)
+  numbers
+  numbers
+  intro m hm hm2
+  apply Nat.not_dvd_of_exists_lt_and_lt
+  interval_cases m
+  use 48
+  constructor <;> numbers
+  use 32
+  constructor <;> numbers
+  use 24
+  constructor <;> numbers
+  use 19
+  constructor <;> numbers
+  use 16
+  constructor <;> numbers
+  use 13
+  constructor <;> numbers
+  use 12
+  constructor <;> numbers
+  use 10
+  constructor <;> numbers

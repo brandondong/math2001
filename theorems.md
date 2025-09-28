@@ -4,3 +4,4 @@
 * le_antisymm: a ≤ b → b ≤ a → a = b
 * le_or_lt: a ≤ b ∨ b < a
 * le_of_dvd: m ∣ n → m ≤ n
+* Int.even_or_odd: Int.Even n ∨ Int.Odd n
