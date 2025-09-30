@@ -44,9 +44,15 @@ def x : ℕ → ℤ
 example (n : ℕ) : x n ≡ 1 [ZMOD 4] := by
   simple_induction n with k IH
   · -- base case
-    sorry
+    dsimp [x]
+    use 1
+    ring
   · -- inductive step
-    sorry
+    dsimp [x]
+    calc
+      2 * x k - 1 ≡ 2 * 1 - 1 [ZMOD 4] := by rel [IH]
+      _ = 1 := by ring
+
 
 example (n : ℕ) : x n = 2 ^ (n + 2) + 1 := by
   simple_induction n with k IH
@@ -91,14 +97,31 @@ example (n : ℕ) : ∀ d, 1 ≤ d → d ≤ n → d ∣ n ! := by
     interval_cases k
   · -- inductive step
     intro d hk1 hk
+    dsimp [factorial]
     obtain hk | hk : d = k + 1 ∨ d < k + 1 := eq_or_lt_of_le hk
     · -- case 1: `d = k + 1`
-      sorry
+      use factorial k
+      rw [hk]
     · -- case 2: `d < k + 1`
-      sorry
+      have ih : d ∣ factorial k
+      . apply IH
+        assumption
+        addarith [hk]
+      cases' ih with x hx
+      use x * (k + 1)
+      rw [hx]
+      ring
+
 
 example (n : ℕ) : (n + 1)! ≥ 2 ^ n := by
-  sorry
+  simple_induction n with k IH
+  . dsimp [factorial]
+    numbers
+  calc
+    (k + 1 + 1)! = (k + 1 + 1) * factorial (k + 1) := by dsimp [factorial]
+    _ ≥ (k + 1 + 1) * 2 ^ k := by rel [IH]
+    _ = 2 ^ (k + 1) + 2 ^ k * k := by ring
+    _ ≥ _ := by extra
 
 
 /-! # Exercises -/
@@ -109,37 +132,95 @@ def c : ℕ → ℤ
   | n + 1 => 3 * c n - 10
 
 example (n : ℕ) : Odd (c n) := by
-  sorry
+  simple_induction n with k IH
+  . dsimp [c]
+    use 3
+    ring
+  dsimp [c]
+  cases' IH with x hx
+  use 3 * x - 4
+  rw [hx]
+  ring
+
 
 example (n : ℕ) : c n = 2 * 3 ^ n + 5 := by
-  sorry
+  simple_induction n with k IH
+  . dsimp [c]
+    ring
+  dsimp [c]
+  rw [IH]
+  ring
+
 
 def y : ℕ → ℕ
   | 0 => 2
   | n + 1 => (y n) ^ 2
 
 example (n : ℕ) : y n = 2 ^ (2 ^ n) := by
-  sorry
+  simple_induction n with k IH
+  . dsimp [y]
+    ring
+  dsimp [y]
+  rw [IH]
+  ring
+
 
 def B : ℕ → ℚ
   | 0 => 0
   | n + 1 => B n + (n + 1 : ℚ) ^ 2
 
 example (n : ℕ) : B n = n * (n + 1) * (2 * n + 1) / 6 := by
-  sorry
+  simple_induction n with k IH
+  . dsimp [B]
+    ring
+  dsimp [B]
+  rw [IH]
+  ring
+
 
 def S : ℕ → ℚ
   | 0 => 1
   | n + 1 => S n + 1 / 2 ^ (n + 1)
 
 example (n : ℕ) : S n = 2 - 1 / 2 ^ n := by
-  sorry
+  simple_induction n with k IH
+  . dsimp [S]
+    ring
+  dsimp [S]
+  rw [IH]
+  ring
+
 
 example (n : ℕ) : 0 < n ! := by
-  sorry
+  simple_induction n with k IH
+  . dsimp [factorial]
+    numbers
+  dsimp [factorial]
+  calc
+    (k + 1) * k ! = k * k ! + k ! := by ring
+    _ > k * k ! + 0 := by rel [IH]
+    _ ≥ 0 := by extra
+
 
 example {n : ℕ} (hn : 2 ≤ n) : Nat.Even (n !) := by
-  sorry
+  induction_from_starting_point n, hn with k hk IH
+  . dsimp [factorial]
+    use 1
+    ring
+  dsimp [factorial]
+  cases' IH with x hx
+  rw [hx]
+  use x * (k + 1)
+  ring
+
 
 example (n : ℕ) : (n + 1) ! ≤ (n + 1) ^ n := by
-  sorry
+  simple_induction n with k IH
+  . dsimp [factorial]
+    numbers
+  have dummy : k + 1 ≤ k + 1 + 1 := by extra
+  calc
+    (k + 1 + 1)! = (k + 1 + 1) * (k + 1) ! := by dsimp [factorial]
+    _ ≤ (k + 1 + 1) * (k + 1) ^ k := by rel [IH]
+    _ ≤ (k + 1 + 1) * (k + 1 + 1) ^ k := by rel [dummy]
+    _ = _ := by ring
