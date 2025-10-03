@@ -1,5 +1,6 @@
 /- Copyright (c) Heather Macbeth, 2023.  All rights reserved. -/
 import Library.Basic
+import Library.Tactic.ModEq
 import Library.Theory.ModEq.Defs
 
 math2001_init
@@ -107,7 +108,29 @@ example (a b : ℤ) (h : 0 < b) : ∃ r : ℤ, 0 ≤ r ∧ r < b ∧ a ≡ r [ZM
 
 
 theorem lt_fmod_of_neg (n : ℤ) {d : ℤ} (hd : d < 0) : d < fmod n d := by
-  sorry
+  rw [fmod]
+  split_ifs with h1 h2 h3 <;> push_neg at *
+  . apply lt_fmod_of_neg
+    assumption
+  . apply lt_fmod_of_neg
+    assumption
+  . assumption
+  . have goal : d ≤ n
+    . clear h3 h1
+      have h1 := calc
+        d * n - d * d = d * (n - d) := by ring
+        _ ≤ 0 := h2
+      clear h2
+      have h2 : -d * d ≤ -d * n := by addarith [h1]
+      clear h1
+      have hd2 : 0 < -d := by exact Int.neg_pos_of_neg hd
+      cancel -d at h2
+    cases' lt_or_eq_of_le goal with h h
+    . assumption
+    . rw [h] at h3
+      contradiction
+termination_by _ n d hd => 2 * n - d
+
 
 def T (n : ℤ) : ℤ :=
   if 0 < n then
@@ -119,12 +142,91 @@ def T (n : ℤ) : ℤ :=
 termination_by T n => 3 * n - 1
 
 theorem T_eq (n : ℤ) : T n = n ^ 2 := by
-  sorry
+  rw [T]
+  split_ifs with h1 h2 <;> push_neg at *
+  . have IH : T (1 - n) = (1 - n) ^ 2 := by apply T_eq
+    rw [IH]
+    ring
+  . have IH : T (-n) = (-n) ^ 2 := by apply T_eq
+    rw [IH]
+    ring
+  . have goal : n = 0
+    . have h3 : n ≥ 0 := by exact Int.nonneg_of_neg_nonpos h2
+      clear h2
+      interval_cases n
+      ring
+    rw [goal]
+    ring
+termination_by _ n => 3 * n - 1
+
 
 theorem uniqueness (a b : ℤ) (h : 0 < b) {r s : ℤ}
     (hr : 0 ≤ r ∧ r < b ∧ a ≡ r [ZMOD b])
     (hs : 0 ≤ s ∧ s < b ∧ a ≡ s [ZMOD b]) : r = s := by
-  sorry
+  cases' hr with hr1 hr2
+  cases' hr2 with hr2 har
+  cases' hs with hs1 hs2
+  cases' hs2 with hs2 has
+  have hrs : r ≡ s [ZMOD b]
+  . exact Int.ModEq.trans (id (Int.ModEq.symm har)) has
+  clear har has a
+  cases' hrs with x hx
+  have goal : x = 0
+  . have hxb1 := calc
+      b * x = r - s := by rw [hx]
+      _ ≤ r - 0 := by rel [hs1]
+      _ = r := by ring
+      _ < b := hr2
+      _ = b * 1 := by ring
+    cancel b at hxb1
+    have hxb2 := calc
+      b * x = r - s := by rw [hx]
+      _ ≥ 0 - s := by rel [hr1]
+      _ = -s := by ring
+      _ > -b := by addarith [hs2]
+      _ = b * -1 := by ring
+    cancel b at hxb2
+    interval_cases x
+    ring
+  rw [goal] at hx
+  have dummy : b * 0 = 0 := by ring
+  rw [dummy] at hx
+  addarith [hx]
+
 
 example (a b : ℤ) (h : 0 < b) : ∃! r : ℤ, 0 ≤ r ∧ r < b ∧ a ≡ r [ZMOD b] := by
-  sorry
+  use fmod a b
+  dsimp
+  constructor
+  . constructor
+    . apply fmod_nonneg_of_pos
+      assumption
+    . constructor
+      . apply fmod_lt_of_pos
+        assumption
+      use fdiv a b
+      have h2 : fmod a b + b * fdiv a b = a
+      . apply fmod_add_fdiv
+      addarith [h2]
+  intro y hy1
+  cases' hy1 with hy1 hy2
+  cases' hy2 with hy2 hay
+  apply uniqueness y b
+  . assumption
+  . constructor
+    . assumption
+    constructor
+    . assumption
+    exact Int.ModEq.refl y
+  . constructor
+    . apply fmod_nonneg_of_pos
+      assumption
+    constructor
+    . apply fmod_lt_of_pos
+      assumption
+    have goal : a ≡ fmod a b [ZMOD b]
+    . use fdiv a b
+      have h2 : fmod a b + b * fdiv a b = a
+      . apply fmod_add_fdiv
+      addarith [h2]
+    exact Int.ModEq.trans (id (Int.ModEq.symm hay)) goal
