@@ -131,10 +131,10 @@ def b : Humour → Humour
   | sanguine => sanguine
 
 def c : Humour → Humour
-  | melancholic => sorry
-  | choleric => sorry
-  | phlegmatic => sorry
-  | sanguine => sorry
+  | melancholic => sanguine
+  | choleric => phlegmatic
+  | phlegmatic => melancholic
+  | sanguine => phlegmatic
 
 example : b ∘ a = c := by
   ext x
@@ -143,25 +143,71 @@ example : b ∘ a = c := by
 
 def u (x : ℝ) : ℝ := 5 * x + 1
 
-noncomputable def v (x : ℝ) : ℝ := sorry
+noncomputable def v (x : ℝ) : ℝ := (x-1)/5
 
 example : Inverse u v := by
-  sorry
+  constructor <;> ext x
+  . dsimp
+    dsimp [u, v]
+    ring
+  . dsimp
+    dsimp [u, v]
+    ring
+
 
 example {f : X → Y} (hf : Injective f) {g : Y → Z} (hg : Injective g) :
     Injective (g ∘ f) := by
-  sorry
+  intro a1 a2 h
+  dsimp [Injective] at *
+  have h2 : (f a1) = (f a2)
+  . apply hg
+    assumption
+  apply hf
+  assumption
+
 
 example {f : X → Y} (hf : Surjective f) {g : Y → Z} (hg : Surjective g) :
     Surjective (g ∘ f) := by
-  sorry
+  intro b
+  dsimp [Surjective] at *
+  have hy := hg b
+  cases' hy with y hy
+  rw [← hy]
+  have hx := hf y
+  cases' hx with x hx
+  use x
+  rw [hx]
+
 
 example {f : X → Y} (hf : Surjective f) : ∃ g : Y → X, f ∘ g = id := by
-  sorry
+  dsimp [Surjective] at hf
+  choose g hg using hf
+  use g
+  ext x
+  dsimp
+  apply hg
+
 
 example {f : X → Y} {g : Y → X} (h : Inverse f g) : Inverse g f := by
-  sorry
+  dsimp [Inverse] at *
+  exhaust
+
 
 example {f : X → Y} {g1 g2 : Y → X} (h1 : Inverse f g1) (h2 : Inverse f g2) :
     g1 = g2 := by
-  sorry
+  have hf := bijective_of_inverse h1
+  dsimp [Bijective] at hf
+  cases' hf with f_inj f_surj
+  ext y
+  have hx := f_surj y
+  cases' hx with x hx
+  rw [← hx]
+  dsimp [Inverse] at *
+  cases' h1 with h1 h12
+  cases' h2 with h2 h22
+  clear h12 h22
+  calc
+    g1 (f x) = (g1 ∘ f) x := by rfl
+    _ = id x := by rw [h1]
+    _ = (g2 ∘ f) x := by rw [h2]
+    _ = g2 (f x) := by rfl
