@@ -127,8 +127,18 @@ example : ∀ f : Celestial → Celestial, Injective f → Bijective f := by
       apply h_sun
     · use moon
       apply h_moon
-  | moon, sun => sorry
-  | moon, moon => sorry
+  | moon, sun =>
+    intro b
+    cases b
+    . use moon
+      assumption
+    . use sun
+      assumption
+  | moon, moon =>
+    have contra : sun = moon
+    . apply hf
+      rw [h_sun, h_moon]
+    contradiction
 
 
 example : ¬ ∀ f : ℕ → ℕ, Injective f → Bijective f := by
@@ -154,17 +164,28 @@ example : ¬ ∀ f : ℕ → ℕ, Injective f → Bijective f := by
 
 
 example : Bijective (fun (x : ℝ) ↦ 4 - 3 * x) := by
-  sorry
+  constructor
+  . intro a1 a2 h
+    dsimp at h
+    have temp : -3 * a1 = -3 * a2 := by addarith [h]
+    cancel -3 at temp
+  . intro b
+    dsimp
+    use (b-4)/(-3)
+    ring
 
-example : ¬ Bijective (fun (x : ℝ) ↦ 4 - 3 * x) := by
-  sorry
-
-
-example : Bijective (fun (x : ℝ) ↦ x ^ 2 + 2 * x) := by
-  sorry
 
 example : ¬ Bijective (fun (x : ℝ) ↦ x ^ 2 + 2 * x) := by
-  sorry
+  dsimp [Bijective]
+  push_neg
+  left
+  dsimp [Injective]
+  push_neg
+  use -2, 0
+  constructor
+  . ring
+  numbers
+
 
 inductive Element
   | fire
@@ -182,15 +203,102 @@ def e : Element → Element
   | air => water
 
 example : Bijective e := by
-  sorry
-
-example : ¬ Bijective e := by
-  sorry
+  constructor
+  . intro a1 a2 h
+    cases a1 <;> cases a2 <;> exhaust
+  . intro b
+    cases b
+    . use earth
+      rfl
+    . use air
+      rfl
+    . use fire
+      rfl
+    . use water
+      rfl
 
 
 example : ∀ f : Subatomic → Subatomic, Injective f → Bijective f := by
-  sorry
+  intro f hf
+  constructor
+  . apply hf
+  . intro b
+    match hp : f proton, hn : f neutron, he : f electron with
+    | proton, proton, proton =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
+    | electron, electron, electron =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
+    | electron, electron, neutron =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
+    | electron, electron, proton =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
+    | electron, neutron, electron => sorry
+    | electron, neutron, neutron => sorry
+    | electron, neutron, proton =>
+    . cases b
+      . use electron
+        assumption
+      . use neutron
+        assumption
+      . use proton
+        assumption
+    | electron, proton, electron => sorry
+    | electron, proton, neutron => sorry
+    | electron, proton, proton => sorry
+    | neutron, electron, electron => sorry
+    | neutron, electron, neutron => sorry
+    | neutron, electron, proton => sorry
+    | neutron, neutron, electron =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
+    | neutron, neutron, neutron =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
+    | neutron, neutron, proton =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
+    | neutron, proton, electron => sorry
+    | neutron, proton, neutron => sorry
+    | neutron, proton, proton => sorry
+    | proton, electron, electron => sorry
+    | proton, electron, neutron => sorry
+    | proton, electron, proton => sorry
+    | proton, neutron, electron => sorry
+    | proton, neutron, neutron => sorry
+    | proton, neutron, proton => sorry
+    | proton, proton, electron =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
+    | proton, proton, neutron =>
+    . have contra : proton = neutron
+      . apply hf
+        rw [hp, hn]
+      contradiction
 
 
 example : ∀ f : Element → Element, Injective f → Bijective f := by
-  sorry
+  intro f hf
+  constructor
+  . apply hf
+  . intro b
+    sorry
