@@ -60,38 +60,60 @@ theorem gcd_nonneg (a b : ℤ) : 0 ≤ gcd a b := by
     addarith [ha]
 termination_by _ a b => b
 
+#eval fmod 11 (-4) -- -1
 
 theorem gcd_dvd (a b : ℤ) : gcd a b ∣ b ∧ gcd a b ∣ a := by
   rw [gcd]
-  split_ifs with h1 h2 <;> push_neg at *
+  split_ifs with h1 h2 h3 <;> push_neg at *
   · -- case `0 < b`
     have IH : _ ∧ _ := gcd_dvd b (fmod a b) -- inductive hypothesis
     obtain ⟨IH_right, IH_left⟩ := IH
     constructor
     · -- prove that `gcd a b ∣ b`
-      sorry
+      assumption
     · -- prove that `gcd a b ∣ a`
-      sorry
+      cases' IH_right with x hx
+      cases' IH_left with y hy
+      use y * fdiv a b + x
+      have temp := calc
+        gcd b (fmod a b) * (y * fdiv a b + x) = gcd b (fmod a b) * y * fdiv a b + gcd b (fmod a b) * x := by ring
+        _ = b * fdiv a b + fmod a b := by rw [← hx, ← hy]
+        _ = fmod a b + b * fdiv a b := by ring
+        _ = a := by apply fmod_add_fdiv
+      rw [temp]
   · -- case `b < 0`
     have IH : _ ∧ _ := gcd_dvd b (fmod a (-b)) -- inductive hypothesis
+    clear h1
     obtain ⟨IH_right, IH_left⟩ := IH
     constructor
     · -- prove that `gcd a b ∣ b`
-      sorry
+      assumption
     · -- prove that `gcd a b ∣ a`
-      sorry
+      cases' IH_right with x hx
+      cases' IH_left with y hy
+      use -y * fdiv a (-b) + x
+      have temp := calc
+        gcd b (fmod a (-b)) * (-y * fdiv a (-b) + x) = -1 * (gcd b (fmod a (-b)) * y) * fdiv a (-b) + gcd b (fmod a (-b)) * x := by ring
+        _ = -1 * b * fdiv a (-b) + fmod a (-b) := by rw [← hx, ← hy]
+        _ = fmod a (-b) + -b * fdiv a (-b) := by ring
+        _ = a := by apply fmod_add_fdiv
+      rw [temp]
   · -- case `b = 0`, `0 ≤ a`
-    constructor
+    constructor <;> interval_cases b
     · -- prove that `gcd a b ∣ b`
-      sorry
+      use 0
+      ring
     · -- prove that `gcd a b ∣ a`
-      sorry
+      use 1
+      ring
   · -- case `b = 0`, `a < 0`
-    constructor
+    constructor <;> interval_cases b
     · -- prove that `gcd a b ∣ b`
-      sorry
+      use 0
+      ring
     · -- prove that `gcd a b ∣ a`
-      sorry
+      use -1
+      ring
 termination_by gcd_dvd a b => b
 
 
@@ -221,4 +243,12 @@ theorem bezout (a b : ℤ) : ∃ x y : ℤ, x * a + y * b = gcd a b := by
 
 
 theorem gcd_maximal {d a b : ℤ} (ha : d ∣ a) (hb : d ∣ b) : d ∣ gcd a b := by
-  sorry
+  cases' bezout a b with x hx
+  cases' hx with y bezout
+  rw [← bezout]
+  clear bezout
+  cases' ha with i hi
+  cases' hb with j hj
+  rw [hi, hj]
+  use x*i + y*j
+  ring
