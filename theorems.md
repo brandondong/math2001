@@ -6,7 +6,7 @@
 * Nat.le_of_dvd: m ∣ n → m ≤ n
 * Int.even_or_odd: Int.Even n ∨ Int.Odd n
 * Nat.lt_or_eq_of_le: (n ≤ m) : n < m ∨ n = m
-* not_dvd_of_exists_lt_and_lt: (h : ∃ q, b * q < a ∧ a < b * (q + 1)) : ¬b ∣ a
+* Int.not_dvd_of_exists_lt_and_lt: (h : ∃ q, b * q < a ∧ a < b * (q + 1)) : ¬b ∣ a
 * Ne.lt_or_lt: (h : x ≠ y) : x < y ∨ y < x
 
 ext ⟨m, n⟩

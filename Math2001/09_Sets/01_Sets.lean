@@ -125,98 +125,161 @@ example : {1, 3, 6} ⊆ {t : ℚ | t < 10} := by
 /-! # Exercises -/
 
 
-example : 4 ∈ {a : ℚ | a < 3} := by
-  sorry
-
 example : 4 ∉ {a : ℚ | a < 3} := by
-  sorry
+  dsimp
+  numbers
+
 
 example : 6 ∈ {n : ℕ | n ∣ 42} := by
-  sorry
+  use 7
+  ring
 
-example : 6 ∉ {n : ℕ | n ∣ 42} := by
-  sorry
-
-
-example : 8 ∈ {k : ℤ | 5 ∣ k} := by
-  sorry
 
 example : 8 ∉ {k : ℤ | 5 ∣ k} := by
-  sorry
+  dsimp
+  apply Int.not_dvd_of_exists_lt_and_lt
+  use 1
+  constructor <;> numbers
+
 
 example : 11 ∈ {n : ℕ | Odd n} := by
-  sorry
-
-example : 11 ∉ {n : ℕ | Odd n} := by
-  sorry
+  use 5
+  ring
 
 
 example : -3 ∈ {x : ℝ | ∀ y : ℝ, x ≤ y ^ 2} := by
-  sorry
-
-example : -3 ∉ {x : ℝ | ∀ y : ℝ, x ≤ y ^ 2} := by
-  sorry
+  dsimp
+  intro y
+  calc
+    -3 ≤ 0 := by numbers
+    _ ≤ y ^ 2 := by extra
 
 
 example : {a : ℕ | 20 ∣ a} ⊆ {x : ℕ | 5 ∣ x} := by
-  sorry
+  intro a ha
+  dsimp at *
+  cases' ha with x hx
+  use x*4
+  rw [hx]
+  ring
 
-example : {a : ℕ | 20 ∣ a} ⊈ {x : ℕ | 5 ∣ x} := by
-  sorry
-
-
-example : {a : ℕ | 5 ∣ a} ⊆ {x : ℕ | 20 ∣ x} := by
-  sorry
 
 example : {a : ℕ | 5 ∣ a} ⊈ {x : ℕ | 20 ∣ x} := by
-  sorry
+  dsimp [Set.subset_def]
+  push_neg
+  use 5
+  constructor
+  . use 1
+    ring
+  apply Nat.not_dvd_of_exists_lt_and_lt
+  use 0
+  constructor <;> numbers
 
-example : {r : ℤ | 3 ∣ r} ⊆ {s : ℤ | 0 ≤ s} := by
-  sorry
 
 example : {r : ℤ | 3 ∣ r} ⊈ {s : ℤ | 0 ≤ s} := by
-  sorry
+  dsimp [Set.subset_def]
+  push_neg
+  use -3
+  constructor
+  . use -1
+    ring
+  numbers
+
 
 example : {m : ℤ | m ≥ 10} ⊆ {n : ℤ | n ^ 3 - 7 * n ^ 2 ≥ 4 * n} := by
-  sorry
-
-example : {m : ℤ | m ≥ 10} ⊈ {n : ℤ | n ^ 3 - 7 * n ^ 2 ≥ 4 * n} := by
-  sorry
+  intro m hm
+  dsimp at *
+  calc
+    m ^ 3 - 7 * m ^ 2 = m * m ^ 2 - 7 * m ^ 2 := by ring
+    _ ≥ 10 * m ^ 2 - 7 * m ^ 2 := by rel [hm]
+    _ = 3 * m * m := by ring
+    _ ≥ 3 * 10 * m := by rel [hm]
+    _ = 4 * m + 26 * m := by ring
+    _ ≥ 4 * m := by extra
 
 
 namespace Int
 example : {n : ℤ | Even n} = {a : ℤ | a ≡ 6 [ZMOD 2]} := by
-  sorry
-
-example : {n : ℤ | Even n} ≠ {a : ℤ | a ≡ 6 [ZMOD 2]} := by
-  sorry
+  ext n
+  constructor <;> intro hn <;> dsimp at *
+  . cases' hn with x hx
+    use x-3
+    rw [hx]
+    ring
+  . cases' hn with x hx
+    use x+3
+    have temp : n = 2 * x + 6 := by addarith [hx]
+    rw [temp]
+    ring
 end Int
 
 
-example : {t : ℝ | t ^ 2 - 5 * t + 4 = 0} = {4} := by
-  sorry
-
 example : {t : ℝ | t ^ 2 - 5 * t + 4 = 0} ≠ {4} := by
-  sorry
+  ext
+  push_neg
+  use 1
+  dsimp
+  left
+  constructor
+  . ring
+  numbers
 
-example : {k : ℤ | 8 ∣ 6 * k} = {l : ℤ | 8 ∣ l} := by
-  sorry
 
 example : {k : ℤ | 8 ∣ 6 * k} ≠ {l : ℤ | 8 ∣ l} := by
-  sorry
+  ext
+  push_neg
+  dsimp
+  use 4
+  left
+  constructor
+  . use 3
+    ring
+  apply Int.not_dvd_of_exists_lt_and_lt
+  use 0
+  constructor <;> numbers
+
 
 example : {k : ℤ | 7 ∣ 9 * k} = {l : ℤ | 7 ∣ l} := by
-  sorry
+  ext k
+  dsimp
+  constructor <;> intro hk
+  . cases' hk with x hx
+    use 4 * k - 3 * x
+    calc
+      k = 7 * 4 * k - 3 * (9 * k) := by ring
+      _ = 7 * 4 * k - 3 * (7 * x) := by rw [hx]
+      _ = 7 * (4 * k - 3 * x) := by ring
+  . cases' hk with x hx
+    use 9 * x
+    rw [hx]
+    ring
 
-example : {k : ℤ | 7 ∣ 9 * k} ≠ {l : ℤ | 7 ∣ l} := by
-  sorry
-
-
-example : {1, 2, 3} = {1, 2} := by
-  sorry
 
 example : {1, 2, 3} ≠ {1, 2} := by
-  sorry
+  ext
+  push_neg
+  use 3
+  left
+  constructor
+  . dsimp
+    right
+    right
+    rfl
+  dsimp
+  push_neg
+  constructor <;> numbers
+
 
 example : {x : ℝ | x ^ 2 + 3 * x + 2 = 0} = {-1, -2} := by
-  sorry
+  ext x
+  dsimp
+  constructor <;> intro hx
+  . have factored := calc
+      (x + 1) * (x + 2) = x ^ 2 + 3 * x + 2 := by ring
+      _ = 0 := hx
+    cases' eq_zero_or_eq_zero_of_mul_eq_zero factored with h h
+    . left
+      addarith [h]
+    . right
+      addarith [h]
+  . cases' hx with hx hx <;> rw [hx] <;> ring
