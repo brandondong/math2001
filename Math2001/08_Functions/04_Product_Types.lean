@@ -45,7 +45,12 @@ example : Bijective (fun ((m, n) : ℤ × ℤ) ↦ (m + n, m + 2 * n)) := by
 
 
 example : Bijective (fun ((m, n) : ℝ × ℝ) ↦ (m + n, m - n)) := by
-  sorry
+  rw [bijective_iff_exists_inverse]
+  dsimp
+  use fun (a, b) ↦ ((a + b) / 2, (a - b) / 2)
+  dsimp
+  constructor <;> ext ⟨m, n⟩ <;> dsimp <;> ring
+
 
 example : ¬ Bijective (fun ((m, n) : ℤ × ℤ) ↦ (m + n, m - n)) := by
   dsimp [Bijective, Injective, Surjective]
@@ -104,7 +109,12 @@ example : Surjective (fun ((m, n) : ℤ × ℤ) ↦ 5 * m + 8 * n) := by
 
 
 example : ¬ Injective (fun ((m, n) : ℤ × ℤ) ↦ 5 * m + 10 * n) := by
-  sorry
+  dsimp [Injective]
+  push_neg
+  use (0, 0), (2, -1)
+  dsimp
+  constructor <;> numbers
+
 
 example : ¬ Surjective (fun ((m, n) : ℤ × ℤ) ↦ 5 * m + 10 * n) := by
   dsimp [Surjective]
@@ -210,31 +220,83 @@ example : Bijective p := by
 
 example : Bijective (fun ((r, s) : ℚ × ℚ) ↦ (s, r - s)) := by
   rw [bijective_iff_exists_inverse]
-  sorry
+  use fun (a, b) ↦ (a + b, a)
+  dsimp
+  constructor <;> ext ⟨m, n⟩ <;> dsimp <;> ring
+
 
 example : ¬ Injective (fun ((x, y) : ℤ × ℤ) ↦ x - 2 * y - 1) := by
-  sorry
+  dsimp [Injective]
+  push_neg
+  use (0, 0), (2, 1)
+  dsimp
+  constructor <;> numbers
+
+
 example : Surjective (fun ((x, y) : ℤ × ℤ) ↦ x - 2 * y - 1) := by
-  sorry
+  intro b
+  dsimp
+  use (b + 1, 0)
+  dsimp
+  ring
+
 
 example : ¬ Surjective (fun ((x, y) : ℚ × ℚ) ↦ x ^ 2 + y ^ 2) := by
-  sorry
+  dsimp [Surjective]
+  push_neg
+  use -1
+  intro a
+  have goal : a.1 ^ 2 + a.2 ^ 2 > -1
+  . calc
+      a.1 ^ 2 + a.2 ^ 2  ≥ 0 := by extra
+      _ > -1 := by numbers
+  exact ne_of_gt goal
+
 
 example : Surjective (fun ((x, y) : ℚ × ℚ) ↦ x ^ 2 - y ^ 2) := by
-  sorry
+  intro b
+  dsimp
+  use ((b + 1) / 2, (b - 1) / 2)
+  dsimp
+  ring
+
 
 example : Surjective (fun ((a, b) : ℚ × ℕ) ↦ a ^ b) := by
-  sorry
+  intro c
+  dsimp
+  use (c, 1)
+  dsimp
+  ring
+
 
 example : ¬ Injective
     (fun ((x, y, z) : ℝ × ℝ × ℝ) ↦ (x + y + z, x + 2 * y + 3 * z)) := by
-  sorry
+  dsimp [Injective]
+  push_neg
+  use (1,1,1), (0,3,0)
+  dsimp
+  constructor <;> numbers
+
 
 example : Injective (fun ((x, y) : ℝ × ℝ) ↦ (x + y, x + 2 * y, x + 3 * y)) := by
-  sorry
+  intro a b h
+  dsimp at h
+  obtain ⟨hm1, hm2, hm3⟩ := h
+  have goal : a.1 = b.1
+  . have temp := calc
+      -1 * a.1 = -2 * (a.1 + a.2) + (a.1 + 2 * a.2) := by ring
+      _ = -2 * (b.1 + b.2) + (b.1 + 2 * b.2) := by rw [hm1, hm2]
+      _ = -1 * b.1 := by ring
+    cancel -1 at temp
+  constructor
+  . apply goal
+  . rw [goal] at hm1
+    addarith [hm1]
+
 
 def h : ℝ × ℝ × ℝ → ℝ × ℝ × ℝ
   | (x, y, z) => (y, z, x)
 
 example : h ∘ h ∘ h = id := by
-  sorry
+  ext ⟨x, y, z⟩
+  dsimp [h]
