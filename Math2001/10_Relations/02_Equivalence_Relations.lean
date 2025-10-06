@@ -2,6 +2,7 @@
 import Mathlib.Data.Real.Basic
 import Library.Theory.InjectiveSurjective
 import Library.Basic
+import Library.Tactic.Exhaust
 import Library.Tactic.ModEq
 
 math2001_init
@@ -168,13 +169,53 @@ section
 local infix:50 "∼" => fun (a b : ℤ) ↦ ∃ m n, m > 0 ∧ n > 0 ∧ a * m = b * n
 
 example : Reflexive (· ∼ ·) := by
-  sorry
+  intro x
+  dsimp
+  use 1, 1
+  constructor
+  . numbers
+  constructor
+  . numbers
+  ring
+
 
 example : Symmetric (· ∼ ·) := by
-  sorry
+  intro x y
+  dsimp
+  intro h
+  cases' h with m h2
+  cases' h2 with n h
+  use n, m
+  exhaust
+
 
 example : Transitive (· ∼ ·) := by
-  sorry
+  dsimp [Transitive]
+  intro x y z hx hy
+  cases' hx with a ha
+  cases' ha with b h1
+  cases' hy with c hc
+  cases' hc with d h2
+  use a*c, d*b
+  cases' h1 with ha h1
+  cases' h2 with hc h2
+  cases' h2 with hd h2
+  cases' h1 with hb h1
+  constructor
+  . calc
+      a * c > 0 * c := by rel [ha]
+      _ = 0 := by ring
+  constructor
+  . calc
+      d * b > 0 * b := by rel [hd]
+      _ = 0 := by ring
+  calc
+    x * (a * c) = (x * a) * c := by ring
+    _ = (y * b) * c := by rw [h1]
+    _ = (y * c) * b := by ring
+    _ = (z * d) * b := by rw [h2]
+    _ = _ := by ring
+
 
 end
 
@@ -183,13 +224,25 @@ section
 local infix:50 "∼" => fun ((a, b) : ℕ × ℕ) (c, d) ↦ a + d = b + c
 
 example : Reflexive (· ∼ ·) := by
-  sorry
+  dsimp [Reflexive]
+  intro x
+  ring
+
 
 example : Symmetric (· ∼ ·) := by
-  sorry
+  dsimp [Symmetric]
+  intro x y h
+  addarith [h]
+
 
 example : Transitive (· ∼ ·) := by
-  sorry
+  dsimp [Transitive]
+  intro x y z hx hy
+  have temp := calc
+    x.1 + y.2 + (y.1 + z.2) = x.2 + y.1 + (y.1 + z.2) := by rw [hx]
+    _ = x.2 + y.1 + (y.2 + z.1) := by rw [hy]
+  addarith [temp]
+
 
 end
 
@@ -199,12 +252,51 @@ local infix:50 "∼" => fun ((a, b) : ℤ × ℤ) (c, d) ↦
   ∃ m n, m > 0 ∧ n > 0 ∧ m * b * (b ^ 2 - 3 * a ^ 2) = n * d * (d ^ 2 - 3 * c ^ 2)
 
 example : Reflexive (· ∼ ·) := by
-  sorry
+  dsimp [Reflexive]
+  intro x
+  use 1, 1
+  constructor
+  . numbers
+  constructor
+  . numbers
+  ring
+
 
 example : Symmetric (· ∼ ·) := by
-  sorry
+  dsimp [Symmetric]
+  intro x y h
+  cases' h with m h
+  cases' h with n h
+  use n, m
+  exhaust
+
 
 example : Transitive (· ∼ ·) := by
-  sorry
+  dsimp [Transitive]
+  intro x y z hx hy
+  cases' hx with a ha
+  cases' ha with b h1
+  cases' hy with c hc
+  cases' hc with d h2
+  cases' h1 with ha h1
+  cases' h2 with hc h2
+  cases' h2 with hd hyz
+  cases' h1 with hb hxy
+  use a*c, d*b
+  constructor
+  . calc
+      a * c > 0 * c := by rel [ha]
+      _ = 0 := by ring
+  constructor
+  . calc
+      d * b > 0 * b := by rel [hd]
+      _ = 0 := by ring
+  calc
+    a * c * x.2 * (x.2 ^ 2 - 3 * x.1 ^ 2) = c * (a * x.2 * (x.2 ^ 2 - 3 * x.1 ^ 2)) := by ring
+    _ = c * (b * y.2 * (y.2 ^ 2 - 3 * y.1 ^ 2)) := by rw [hxy]
+    _ = b * (c * y.2 * (y.2 ^ 2 - 3 * y.1 ^ 2)) := by ring
+    _ = b * (d * z.2 * (z.2 ^ 2 - 3 * z.1 ^ 2)) := by rw [hyz]
+  ring
+
 
 end
