@@ -79,7 +79,21 @@ example : ¬ ∃ f : X → Set X, Surjective f := by
 def r (s : Set ℕ) : Set ℕ := s ∪ {3}
 
 example : ¬ Injective r := by
-  sorry
+  dsimp [Injective]
+  push_neg
+  dsimp [r]
+  use {0, 3}, {0}
+  dsimp
+  constructor
+  . ext x
+    constructor <;> intro h <;> dsimp at * <;> exhaust
+  . ext
+    push_neg
+    use 3
+    left
+    dsimp
+    exhaust
+
 
 namespace Int
 
@@ -90,8 +104,34 @@ def U : ℕ → Set ℤ
 example (n : ℕ) : U n = {x : ℤ | (2:ℤ) ^ n ∣ x} := by
   simple_induction n with k hk
   · rw [U]
-    sorry
+    ext x
+    dsimp
+    constructor <;> intro h
+    . use x
+      ring
+    . triv
   · rw [U]
     ext x
     dsimp
-    sorry
+    constructor <;> intro h
+    . cases' h with y hy
+      cases' hy with hy hy2
+      rw [hy2]
+      clear hy2 x
+      rw [hk] at hy
+      dsimp at hy
+      cases' hy with w hw
+      rw [hw]
+      clear hw y hk
+      use w
+      ring
+    . cases' h with w hw
+      rw [hw]
+      clear hw x
+      use 2^k * w
+      constructor
+      . rw [hk]
+        dsimp
+        use w
+        ring
+      ring
