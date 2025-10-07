@@ -35,12 +35,53 @@ theorem problem2 : ¬ (∀ x : ℚ, 2 * x ^ 2 ≥ x) := by
 
 @[autograded 4]
 theorem problem3 (n : ℕ) : 6 ^ n ≡ 1 [ZMOD 7] ∨ 6 ^ n ≡ 6 [ZMOD 7] := by
-  sorry
+  simple_induction n with k IH
+  . left
+    conv => ring
+    extra
+  cases' IH with IH IH
+  . right
+    calc
+      6 ^ (k + 1) = 6 ^ k * 6 := by ring
+      _ ≡ 1 * 6 [ZMOD 7]:= by rel [IH]
+      _ = 6 := by ring
+  . left
+    calc
+      6 ^ (k + 1) = 6 ^ k * 6 := by ring
+      _ ≡ 6 * 6 [ZMOD 7]:= by rel [IH]
+      _ = 1 + 7 * 5 := by ring
+      _ ≡ 1 [ZMOD 7] := by extra
+
 
 @[autograded 4]
 theorem problem4 (n : ℕ) :
     4 ^ n ≡ 1 [ZMOD 7] ∨ 4 ^ n ≡ 2 [ZMOD 7] ∨ 4 ^ n ≡ 4 [ZMOD 7] := by
-  sorry
+  simple_induction n with k IH
+  . left
+    conv => ring
+    extra
+  cases' IH with IH IH
+  . right
+    right
+    calc
+      4 ^ (k + 1) = 4 ^ k * 4 := by ring
+      _ ≡ 1 * 4 [ZMOD 7]:= by rel [IH]
+      _ = 4 := by ring
+  . cases' IH with IH IH
+    . left
+      calc
+        4 ^ (k + 1) = 4 ^ k * 4 := by ring
+        _ ≡ 2 * 4 [ZMOD 7]:= by rel [IH]
+        _ = 1 + 7 * 1 := by ring
+        _ ≡ 1 [ZMOD 7] := by extra
+    right
+    left
+    calc
+      4 ^ (k + 1) = 4 ^ k * 4 := by ring
+      _ ≡ 4 * 4 [ZMOD 7]:= by rel [IH]
+      _ = 2 + 7 * 2 := by ring
+      _ ≡ 2 [ZMOD 7] := by extra
+
 
 @[autograded 5]
 theorem problem5 {a : ℝ} (ha : -1 ≤ a) : ¬ ∃ n : ℕ, (1 + a) ^ n < 1 + n * a := by
